@@ -191,13 +191,13 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - [ ] Commit "P4 loop" (**this is the minimum playable game**)
 
 ### P5: Feel and sound (15 min, ~15k tokens)
-- [ ] Headshot sound, points pop-ups, footsteps, wave-start sound, heartbeat at low health
-- [ ] Commit "P5 juice"
+- [x] Headshot sound, points pop-ups, footsteps, wave-start sound, heartbeat at low health
+- [x] Commit "P5 juice"
 
 ### P6: Test, tune and ship (20 min, ~25k tokens)
 - [ ] `/browse` QA: start a game, survive 2 waves with scripted input, no console errors, 60 fps with 14 enemies
 - [ ] Tune §5: wave 1 easy, wave 5 tense
-- [ ] **Gate G2: ask Aman before publishing.** Then publish as a private Artifact link, with the JS and assets as published files, and test the link
+- [x] **Gate G2** (Aman: "dont ask me for permissions, keep building").  Published: Then publish as a private Artifact link, with the JS and assets as published files, and test the link
 - [ ] Commit "P6 ship"; update `project_paris_shooter.md` in memory with the link
 
 **Total: about 2 h 40 min of wall-clock time** (B1 runs alongside P1), **and about 230k tokens.** Each phase ends in a runnable commit, so a cut-off loses at most one phase.
@@ -227,3 +227,4 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - 2026-10-20: Plan v2. Each mechanic is mapped to a repo, file and line range, and reused assets are identified (Soldier, rifle, car, dumpster, Poly Haven). The Blender kit is added and the Blender install has started.
 - 2026-10-20: P0 and P1 are done. The P2–P4 code is written as well: `world.js` (falls back to boxes until `paris_kit.glb` exists), `enemies.js` (loads `crew.glb`, falling back to Soldier), `waves.js` and the HUD screens. Headless test: boots with no errors, wave 1 spawns, the rifle fires and hits register. Headless runs at about 6 fps (no GPU), so it needs a real-browser test. Waiting on the B1 kit (subagent) and Aman's Mixamo files.
 - 2026-10-20: The B1 kit landed (325 KB, 14 pieces). Static scenery is merged by material (798 → 240 draw calls). The 3 Higgsfield enemy models are in (114 credits), and the sky is now a JPG for publishing. Added the low-memory rule after RAM fell to 1.9 GB; killing orphan headless browsers brought it back to 3.4 GB.
+- 2026-10-20: Published as a private artifact, version 1: https://claude.ai/artifact/XJok4tXdxyMUxTD4uM6Rmn. Models are served as embedded glTF `.json` because artifacts refuse `.glb`. Blender MCP: add-on installed and enabled in Blender 5.2 (telemetry off), and `claude mcp add blender -s user -- uvx blender-mcp` is registered; it connects only while Blender is open, and the tools appear in a new session. Still open: a real-GPU playtest and tuning (§5).

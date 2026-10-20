@@ -1,3 +1,4 @@
 reference/footage/
 node_modules/
 *.log
+.gstack/
