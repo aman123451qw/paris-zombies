@@ -85,7 +85,7 @@ paris-zombies/
 | Asset | Source | License | Size | Use in game |
 |---|---|---|---|---|
 | `Soldier.glb`: rigged, 49 joints, Idle, Walk, Run and T-pose clips | three.js `examples/models/gltf/` | Ships with three.js (a royalty-free Mixamo character) | 2.2 MB | **Placeholder only.** It reads as an armoured soldier, so it won't be the final enemy |
-| Mixamo hoodie character plus 7 clips (idle, run, walk, swing, throw, hit, death) | [mixamo.com](https://www.mixamo.com); Aman downloads the FBX files into `game/assets/mixamo/` | Mixamo: free to use in games | ~3–5 MB raw, merged to `crew.glb` in Blender | **The enemy model** for all 3 variants: black material, balaclava on the head bone, prop and scale per variant |
+| Mixamo | Tried first; no matching hoodie character | n/a | n/a | Dropped in favour of H3 |
 | `rifle.glb` | agentofduty `public/models/` | MIT | 0.8 MB | The player's starting gun in first person |
 | `car.glb` | agentofduty | MIT | 1.1 MB | Burnt car: darkened material plus ember particles |
 | `dumpster.glb` | agentofduty | MIT | 0.7 MB | Cover and bins around the square |
@@ -118,7 +118,7 @@ None of these is needed for the first build. Propose one only after P6 if the ga
 |---|---|---|---|
 | H1 | Facade texture atlas (stone, windows, shopfronts) | Yes, if the Blender facades look flat | ~0.25 credits |
 | H2 | Title card and key art for the start screen | Small improvement; nice to have | ~0.25 credits |
-| H3 | The 3 enemy models from our character sheets via Higgsfield 3D (38 credits each textured + rigged + run; 28 untextured) | Fallback if Mixamo looks wrong. **Current route: Mixamo (free), Aman 2026-10-20** | 38 credits each (checked 2026-10-20) |
+| H3 | The 3 enemy models from our character sheets (4 views each, `multi_image_to_3d`, textured, rigged, RunFast clip) | **Chosen** (Aman, 2026-10-20). Mixamo had no matching character. Swing, throw and death are animated in code | **114 credits** (3 × 38), approved and generating |
 
 ## 5. Gameplay numbers (starting values; tune in P6)
 
@@ -218,7 +218,8 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 |---|---|---|
 | 2026-10-19 | Apify: 16 footage clips | ~$0.17 |
 | 2026-10-19/20 | Higgsfield: 6 concept frames + 3 character sheets | ~2.25 credits |
-| | **Build (default path)** | **0 credits** |
+| 2026-10-20 | Higgsfield: 3 enemy 3D models (H3, approved) | 114 credits |
+| | **Total so far** | **~116.25 credits + $0.17** |
 
 ## 9. Progress log
 

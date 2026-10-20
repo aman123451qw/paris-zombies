@@ -1,5 +1,5 @@
-// Masked-crew enemies. Model: assets/crew.glb (Mixamo hoodie character + clips, merged in Blender)
-// with assets/Soldier.glb (three.js example) as the placeholder fallback.
+// Masked-crew enemies (protester-style). Models: assets/crew_<type>.glb from Higgsfield 3D (our sheets),
+// with assets/Soldier.glb (three.js example) painted black as the fallback.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -16,11 +16,19 @@ const HIT_MAT = new THREE.MeshBasicMaterial({ visible: false });
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
 
 export async function createEnemies(ctx) {
-  let gltf;
-  try { gltf = await new GLTFLoader().loadAsync('assets/crew.glb'); } catch { gltf = await new GLTFLoader().loadAsync('assets/Soldier.glb'); }
-  const clip = name => gltf.animations.find(a => a.name.toLowerCase().includes(name));
-  const clips = { idle: clip('idle'), run: clip('run'), walk: clip('walk') || clip('run'), swing: clip('swing'), throw: clip('throw'), hit: clip('hit'), death: clip('death') || clip('dying') };
-  const baseH = new THREE.Box3().setFromObject(gltf.scene).getSize(tmp).y || 1.8;
+  // Per-type models (Higgsfield 3D from our character sheets): assets/crew_<type>.glb, textured, with a run clip.
+  // Fallback: Soldier.glb painted black.
+  const loader = new GLTFLoader();
+  const fallback = await loader.loadAsync('assets/Soldier.glb');
+  const models = {};
+  for (const type of Object.keys(TYPES)) {
+    let g = null, own = true;
+    try { g = await loader.loadAsync(`assets/crew_${type}.glb`); } catch { g = fallback; own = false; }
+    const clip = name => g.animations.find(a => a.name.toLowerCase().includes(name));
+    const run = clip('run') || g.animations[0];
+    models[type] = { gltf: g, own, clips: { idle: clip('idle'), run, walk: clip('walk') || run, swing: clip('swing'), throw: clip('throw'), hit: clip('hit'), death: clip('death') || clip('dying') },
+      baseH: new THREE.Box3().setFromObject(g.scene).getSize(tmp).y || 1.8 };
+  }
   const list = [], projectiles = [];
   const bottleGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.28, 8), bottleMat = new THREE.MeshStandardMaterial({ color: 0x3f6b3a, roughness: 0.2, transparent: true, opacity: 0.85 });
 
@@ -28,22 +36,22 @@ export async function createEnemies(ctx) {
   function attachSized(b, mesh) { b.updateWorldMatrix(true, false); const s = b.getWorldScale(tmp2); mesh.scale.divide(s); b.add(mesh); return mesh; }
 
   function make(type) {
-    const def = TYPES[type], root = new THREE.Group(), model = SkeletonUtils.clone(gltf.scene);
-    model.traverse(o => { if (o.isMesh) { o.material = o.name.toLowerCase().includes('visor') ? MASK : BLACK; o.castShadow = true; o.frustumCulled = false; } });
-    model.scale.setScalar((1.8 * def.scale) / baseH); model.rotation.y = gltf.animations.length > 4 ? 0 : Math.PI;
+    const def = TYPES[type], M = models[type], root = new THREE.Group(), model = SkeletonUtils.clone(M.gltf.scene);
+    model.traverse(o => { if (o.isMesh) { if (!M.own) o.material = o.name.toLowerCase().includes('visor') ? MASK : BLACK; o.castShadow = true; o.frustumCulled = false; } });
+    model.scale.setScalar((1.8 * def.scale) / M.baseH); model.rotation.y = M.own ? 0 : Math.PI;
     root.add(model); ctx.scene.add(root); root.updateMatrixWorld(true);
     const head = bone(model, 'head'), hand = bone(model, 'righthand'), arm = bone(model, 'leftforearm');
-    if (head) attachSized(head, new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), MASK)).position.set(0, 0.06 / tmp2.y, -0.01 / tmp2.z);
+    if (head && !M.own) attachSized(head, new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), MASK)).position.set(0, 0.06 / tmp2.y, -0.01 / tmp2.z);
     if (hand && type === 'runner') attachSized(hand, new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.8, 8).translate(0, 0.38, 0), new THREE.MeshStandardMaterial({ color: 0x7a5230 })));
     if (hand && type === 'heavy') attachSized(hand, new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.6, 6).translate(0, 0.25, 0), new THREE.MeshStandardMaterial({ color: 0x5a1e1e, metalness: 0.6 })));
     if (arm && type === 'heavy') attachSized(arm, new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.03), new THREE.MeshStandardMaterial({ color: 0x8d8f91, metalness: 0.7, roughness: 0.45 }))).position.set(0, 0.15 / tmp2.y, 0.14 / tmp2.z);
     if (hand && type === 'thrower') attachSized(hand, new THREE.Mesh(bottleGeo, bottleMat)).position.set(0, 0.1 / tmp2.y, 0);
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.32 * def.scale, 0.28 * def.scale, 1.45 * def.scale, 8).translate(0, 0.75 * def.scale, 0), HIT_MAT);
     root.add(body);
-    const headBox = new THREE.Mesh(new THREE.SphereGeometry(0.17 / tmp2.x, 8, 6), HIT_MAT);
-    if (head) head.add(headBox);
+    const headBox = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 6), HIT_MAT);
+    if (head) attachSized(head, headBox); else { headBox.position.y = 1.65 * def.scale; root.add(headBox); }
     const mixer = new THREE.AnimationMixer(model), acts = {};
-    for (const [k, c] of Object.entries(clips)) if (c) acts[k] = mixer.clipAction(c);
+    for (const [k, c] of Object.entries(M.clips)) if (c) acts[k] = mixer.clipAction(c);
     for (const k of ['swing', 'throw', 'hit', 'death']) if (acts[k]) { acts[k].setLoop(THREE.LoopOnce); acts[k].clampWhenFinished = true; }
     const e = { type, def, root, model, mixer, acts, body, headBox, hp: def.hp, alive: false, cd: 0, windup: 0, deadT: 0, cur: null, flash: 0, entry: null };
     const onHit = isHead => (dmg, head, point, now) => hit(e, dmg, isHead || head, point, now);
@@ -149,7 +157,7 @@ export async function createEnemies(ctx) {
   }
 
   return {
-    spawn, update, alive: () => list.filter(e => e.alive).length,
+    spawn, update, list, alive: () => list.filter(e => e.alive).length,
     reset() { for (const e of list) { e.alive = false; e.deadT = 99; e.root.visible = false; remove(e); } for (const p of projectiles) ctx.scene.remove(p.m); projectiles.length = 0; },
   };
 }
