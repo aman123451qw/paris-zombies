@@ -2,7 +2,6 @@
 // and falls back to plain boxes for any piece the kit doesn't have yet.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { Octree } from 'three/addons/math/Octree.js';
 import { signTex, plaqueTex, shutterTex, chalkGunTex, softDotTex } from './textures.js';
 
@@ -26,7 +25,7 @@ export async function buildWorld(ctx) {
   try { kit = (await loader.loadAsync('assets/paris_kit.glb')).scene; } catch { console.warn('paris_kit.glb missing, using boxes'); }
 
   // Sky + light.
-  const hdr = await new HDRLoader().loadAsync('assets/tex/sky_1k.hdr');
+  const hdr = await tex.loadAsync('assets/tex/sky.jpg'); hdr.colorSpace = THREE.SRGBColorSpace; // LDR copy of the Poly Haven HDRI (web-safe for publishing)
   hdr.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = hdr; scene.environment = hdr; scene.environmentIntensity = 0.7;
   scene.fog = new THREE.Fog(0xc9d3dc, 60, 170);
