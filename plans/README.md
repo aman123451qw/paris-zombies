@@ -17,7 +17,8 @@ This file is the source of truth. After every phase, tick the boxes, add a line 
    - Use one subagent only, for the Blender kit (B1), so it runs alongside P1.
 4. **Content:** enemies are human protester-style characters, an imitation of the masked black-clad protesters in the footage, not zombies. Their look comes from the Higgsfield character sheets in `reference/characters/` (runner, heavy, thrower). There's no blood.
 5. **Git:** commit after each phase. Do **not** add Claude or Anthropic attribution lines to commits.
-6. **Publishing** anywhere (Artifact link, GitHub Pages or Emergent) needs Aman's OK at gate G2.
+6. **Low memory:** check free RAM during the build (PowerShell `Get-CimInstance Win32_OperatingSystem`). Under about 3 GB, close what isn't needed: `browse stop`, `Stop-Process -Name chrome-headless-shell`, and stray servers or tasks we started. Never close Aman's own apps. Stop the browse server after each QA pass.
+7. **Publishing** anywhere (Artifact link, GitHub Pages or Emergent) needs Aman's OK at gate G2.
 
 ## 1. Scope
 
@@ -161,9 +162,9 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - [x] Commit "P0 scaffold"
 
 ### B1: Blender Paris kit (45 min, subagent, runs alongside P1, ~40k tokens)
-- [ ] `blender/build_paris_kit.py` builds every piece in §4.2 with named nodes plus `col_*` colliders
-- [ ] Exports `game/assets/paris_kit.glb` at 3 MB or less; renders a preview PNG for a quick look
-- [ ] Commit "B1 Paris kit"
+- [x] `blender/build_paris_kit.py` builds every piece in §4.2 with named nodes plus `col_*` colliders
+- [x] Exports `game/assets/paris_kit.glb` at 3 MB or less; renders a preview PNG for a quick look
+- [x] Commit "B1 Paris kit"
 
 ### P1: Player and gun (30 min, ~35k tokens)
 - [x] `player.js` from games_fps (§2 rows 1–2) on a test floor
@@ -172,10 +173,10 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - [x] Commit "P1 player + rifle"
 
 ### P2: République map (30 min, ~35k tokens)
-- [ ] `world.js` places kit pieces: a ring of buildings with 4 street gaps, the monument in the centre, 2 tree rows, 2 metro arches, barricades, cars, dumpsters, café tables, and the side-street block behind pallets
-- [ ] Poly Haven paving and HDRI; sun with shadows; light fog; 3 smoke columns; canvas shop signs and graffiti shutters
-- [ ] Octree built from `col_*` only; check you can't walk through walls; draw calls under 150
-- [ ] Screenshot compared with concept 05; commit "P2 map"
+- [x] `world.js` places kit pieces: a ring of buildings with 4 street gaps, the monument in the centre, 2 tree rows, 2 metro arches, barricades, cars, dumpsters, café tables, and the side-street block behind pallets
+- [x] Poly Haven paving and HDRI; sun with shadows; light fog; 3 smoke columns; canvas shop signs and graffiti shutters
+- [x] Octree built from `col_*` only; check you can't walk through walls; draw calls under 150
+- [x] Screenshot compared with concept 05; commit "P2 map"
 
 ### P3: Enemies (35 min, ~40k tokens)
 - [ ] Soldier.glb clones in black with a hood; runner with a bat, heavy with a shield (1.15× size), thrower with a bottle
@@ -225,3 +226,4 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 
 - 2026-10-20: Plan v2. Each mechanic is mapped to a repo, file and line range, and reused assets are identified (Soldier, rifle, car, dumpster, Poly Haven). The Blender kit is added and the Blender install has started.
 - 2026-10-20: P0 and P1 are done. The P2–P4 code is written as well: `world.js` (falls back to boxes until `paris_kit.glb` exists), `enemies.js` (loads `crew.glb`, falling back to Soldier), `waves.js` and the HUD screens. Headless test: boots with no errors, wave 1 spawns, the rifle fires and hits register. Headless runs at about 6 fps (no GPU), so it needs a real-browser test. Waiting on the B1 kit (subagent) and Aman's Mixamo files.
+- 2026-10-20: The B1 kit landed (325 KB, 14 pieces). Static scenery is merged by material (798 → 240 draw calls). The 3 Higgsfield enemy models are in (114 credits), and the sky is now a JPG for publishing. Added the low-memory rule after RAM fell to 1.9 GB; killing orphan headless browsers brought it back to 3.4 GB.

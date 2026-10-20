@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Octree } from 'three/addons/math/Octree.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { signTex, plaqueTex, shutterTex, chalkGunTex, softDotTex } from './textures.js';
 
 export const HALF_X = 45, HALF_Z = 35, GAP = 7;
@@ -149,6 +150,10 @@ export async function buildWorld(ctx) {
     }
   }
 
+  // Merge static scenery by material (~800 draw calls down to a few dozen). The gate stays separate so it can be removed.
+  const keep = new Set([ground]); gate.traverse(o => keep.add(o));
+  const merged = mergeStatic(root, keep);
+  worldMeshes.length = 0; worldMeshes.push(ground, ...merged); gate.traverse(o => { if (o.isMesh && o.visible) worldMeshes.push(o); });
   colliders.visible = false;
   colliders.updateMatrixWorld(true);
   ctx.octree.fromGraphNode(colliders);
@@ -166,3 +171,26 @@ export async function buildWorld(ctx) {
 }
 
 function rep(t, n, srgb) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(n, n); t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; }
+
+function mergeStatic(root, keep) {
+  root.updateMatrixWorld(true);
+  const groups = new Map(), done = [];
+  root.traverse(o => {
+    if (!o.isMesh || o.isSkinnedMesh || !o.visible || keep.has(o) || Array.isArray(o.material)) return;
+    const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    g.applyMatrix4(o.matrixWorld);
+    for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k);
+    if (!g.attributes.normal) g.computeVertexNormals();
+    if (!g.attributes.uv) g.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+    g.morphAttributes = {};
+    if (!groups.has(o.material.uuid)) groups.set(o.material.uuid, { mat: o.material, geos: [] });
+    groups.get(o.material.uuid).geos.push(g); done.push(o);
+  });
+  for (const o of done) o.removeFromParent();
+  const out = [];
+  for (const { mat, geos } of groups.values()) {
+    const geo = mergeGeometries(geos, false); if (!geo) continue;
+    const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; root.add(m); out.push(m);
+  }
+  return out;
+}
