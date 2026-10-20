@@ -40,7 +40,7 @@ function shotgunMesh() {
 
 export async function createWeapons(ctx) {
   const { camera, audio, hud } = ctx;
-  const rifleScene = (await new GLTFLoader().loadAsync('assets/rifle.glb')).scene;
+  const rifleScene = (await new GLTFLoader().loadAsync('assets/rifle.gltf.json')).scene;
   const models = { rifle: rifleScene, shotgun: shotgunMesh() };
   rifleScene.userData.muzzleZ = -0.515;
   const holder = new THREE.Group(); camera.add(holder);

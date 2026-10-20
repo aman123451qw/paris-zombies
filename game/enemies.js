@@ -19,11 +19,11 @@ export async function createEnemies(ctx) {
   // Per-type models (Higgsfield 3D from our character sheets): assets/crew_<type>.glb, textured, with a run clip.
   // Fallback: Soldier.glb painted black.
   const loader = new GLTFLoader();
-  const fallback = await loader.loadAsync('assets/Soldier.glb');
+  let fallback = null;
   const models = {};
   for (const type of Object.keys(TYPES)) {
     let g = null, own = true;
-    try { g = await loader.loadAsync(`assets/crew_${type}.glb`); } catch { g = fallback; own = false; }
+    try { g = await loader.loadAsync(`assets/crew_${type}.gltf.json`); } catch { g = fallback ||= await loader.loadAsync('assets/Soldier.glb'); own = false; }
     const clip = name => g.animations.find(a => a.name.toLowerCase().includes(name));
     const run = clip('run') || g.animations[0];
     models[type] = { gltf: g, own, clips: { idle: clip('idle'), run, walk: clip('walk') || run, swing: clip('swing'), throw: clip('throw'), hit: clip('hit'), death: clip('death') || clip('dying') },

@@ -23,7 +23,7 @@ export async function buildWorld(ctx) {
   scene.add(root); scene.add(colliders);
   const worldMeshes = [];
   let kit = null;
-  try { kit = (await loader.loadAsync('assets/paris_kit.glb')).scene; } catch { console.warn('paris_kit.glb missing, using boxes'); }
+  try { kit = (await loader.loadAsync('assets/paris_kit.gltf.json')).scene; } catch { console.warn('paris_kit.glb missing, using boxes'); }
 
   // Sky + light.
   const hdr = await tex.loadAsync('assets/tex/sky.jpg'); hdr.colorSpace = THREE.SRGBColorSpace; // LDR copy of the Poly Haven HDRI (web-safe for publishing)
@@ -119,7 +119,7 @@ export async function buildWorld(ctx) {
   for (const [x, z] of [[-30, 0], [30, -18]]) piece('bench', x, z, Math.PI / 2, [2, 0.9, 0.6]);
   const props = [];
   for (const [file, x, z, r] of [['car', -25, 10, 0.5], ['car', 28, -12, 2.2], ['dumpster', 36, 22, 0], ['dumpster', -38, -22, 1.6]]) {
-    const g = (await loader.loadAsync(`assets/${file}.glb`)).scene;
+    const g = (await loader.loadAsync(`assets/${file}.gltf.json`)).scene;
     g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; if (file === 'car') { o.material = o.material.clone(); o.material.color.multiplyScalar(0.18); o.material.roughness = 1; } worldMeshes.push(o); } });
     g.position.set(x, 0, z); g.rotation.y = r; root.add(g); g.updateMatrixWorld(true);
     const bb = new THREE.Box3().setFromObject(g), size = bb.getSize(new THREE.Vector3()), c = bb.getCenter(new THREE.Vector3());
