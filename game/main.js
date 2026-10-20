@@ -17,7 +17,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.autoClear = false; 
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 400);
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 400);
 camera.rotation.order = 'YXZ'; scene.add(camera);
 const vmLight = new THREE.DirectionalLight(0xffffff, 1.4); vmLight.position.set(1, 2, 1); vmLight.layers.set(1); camera.add(vmLight);
 const vmAmb = new THREE.AmbientLight(0xffffff, 0.8); vmAmb.layers.set(1); scene.add(vmAmb);
