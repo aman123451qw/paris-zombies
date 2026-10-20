@@ -140,7 +140,7 @@ export async function createWeapons(ctx) {
         anyHit = true; head ||= !!hit.object.userData.head;
       } else ctx.fx.impact(hit.point, hit.face?.normal);
     }
-    if (anyHit) { hud.hitmarker(head); audio.hit(head); }
+    if (anyHit) { hud.hitmarker(head); audio.hit(head); ctx.waves.onHit(); }
   }
 
   w.switchTo('rifle');

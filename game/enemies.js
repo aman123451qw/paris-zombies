@@ -8,7 +8,7 @@ import { SPAWNS, SIDE_SPAWN, OBSTACLES, HALF_X, HALF_Z } from './world.js';
 export const TYPES = {
   runner:  { hp: 60,  speed: 7.5, dmg: 20, range: 1.6, cd: 1.0, points: 60,  scale: 1.0,  move: 'run' },
   thrower: { hp: 50,  speed: 4.5, dmg: 15, range: 15,  cd: 2.5, points: 90,  scale: 0.97, move: 'run' },
-  heavy:   { hp: 220, speed: 3.2, dmg: 35, range: 1.8, cd: 1.4, points: 150, scale: 1.15, move: 'walk' },
+  heavy:   { hp: 180, speed: 3.2, dmg: 35, range: 1.8, cd: 1.4, points: 150, scale: 1.15, move: 'walk' },
 };
 const BLACK = new THREE.MeshStandardMaterial({ color: 0x161617, roughness: 0.92 });
 const MASK = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: 1 });
@@ -48,8 +48,8 @@ export async function createEnemies(ctx) {
     if (hand && type === 'thrower') attachSized(hand, new THREE.Mesh(bottleGeo, bottleMat)).position.set(0, 0.1 / tmp2.y, 0);
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.32 * def.scale, 0.28 * def.scale, 1.45 * def.scale, 8).translate(0, 0.75 * def.scale, 0), HIT_MAT);
     root.add(body);
-    const headBox = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 6), HIT_MAT);
-    if (head) attachSized(head, headBox); else { headBox.position.y = 1.65 * def.scale; root.add(headBox); }
+    const headBox = new THREE.Mesh(new THREE.SphereGeometry(0.21 * def.scale, 10, 8), HIT_MAT);
+    headBox.position.y = 1.62 * def.scale; root.add(headBox);
     const mixer = new THREE.AnimationMixer(model), acts = {};
     for (const [k, c] of Object.entries(M.clips)) if (c) acts[k] = mixer.clipAction(c);
     for (const k of ['swing', 'throw', 'hit', 'death']) if (acts[k]) { acts[k].setLoop(THREE.LoopOnce); acts[k].clampWhenFinished = true; }
@@ -70,10 +70,10 @@ export async function createEnemies(ctx) {
     if (e.type === 'heavy' && !head) { // Shield blocks from the front ±50°.
       tmp.subVectors(ctx.camera.position, e.root.position).setY(0).normalize();
       tmp2.set(Math.sin(e.root.rotation.y), 0, Math.cos(e.root.rotation.y));
-      if (tmp.dot(tmp2) > Math.cos(THREE.MathUtils.degToRad(50))) { ctx.fx.impact(point, 0xffd27a); ctx.audio.empty(); dmg *= 0.1; }
+      if (tmp.dot(tmp2) > Math.cos(THREE.MathUtils.degToRad(50))) { ctx.fx.impact(point, 0xffd27a); ctx.audio.empty(); dmg *= 0.4; }
     }
     const d = head ? dmg * 2 : dmg;
-    e.hp -= d; e.flash = 0.08; ctx.fx.impact(point, 0x2a2a2a); ctx.waves.onHit();
+    e.hp -= d; e.flash = 0.08; ctx.fx.impact(point, 0x2a2a2a);
     tmp.subVectors(e.root.position, ctx.camera.position).setY(0).normalize(); e.root.position.addScaledVector(tmp, 0.12);
     if (e.hp <= 0) die(e, head, now);
   }
