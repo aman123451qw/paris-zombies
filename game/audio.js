@@ -26,8 +26,30 @@ function tone({ freq = 440, end = freq, dur = 0.1, type = 'sine', gain = 0.3 }) 
   o.connect(g).connect(master); o.start(t); o.stop(t + dur + 0.02);
 }
 
+let ambOn = false;
+function startAmbience() {
+  if (!ac || ambOn) return; ambOn = true;
+  // Distant crowd roar: looping band-passed noise with a slow swell.
+  const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 0.7;
+  const g = ac.createGain(); g.gain.value = 0.06;
+  const lfo = ac.createOscillator(); lfo.frequency.value = 0.13; const lg = ac.createGain(); lg.gain.value = 0.035; lfo.connect(lg).connect(g.gain); lfo.start();
+  src.connect(f).connect(g).connect(master); src.start();
+  // Sirens and distant bangs at random intervals.
+  const siren = () => {
+    const t = ac.currentTime, o = ac.createOscillator(), sg = ac.createGain(), p = ac.createStereoPanner();
+    o.type = 'triangle'; p.pan.value = Math.random() * 2 - 1;
+    for (let i = 0; i < 6; i++) { o.frequency.setValueAtTime(700, t + i * 0.9); o.frequency.linearRampToValueAtTime(980, t + i * 0.9 + 0.45); }
+    sg.gain.setValueAtTime(0, t); sg.gain.linearRampToValueAtTime(0.025, t + 1); sg.gain.linearRampToValueAtTime(0, t + 5.4);
+    o.connect(sg).connect(p).connect(master); o.start(t); o.stop(t + 5.5);
+    setTimeout(siren, 14000 + Math.random() * 20000);
+  };
+  const bang = () => { noise({ dur: 0.5, freq: 220, gain: 0.25, pan: Math.random() * 2 - 1 }); if (Math.random() < 0.5) setTimeout(() => noise({ dur: 0.3, freq: 300, gain: 0.15 }), 180); setTimeout(bang, 5000 + Math.random() * 9000); };
+  setTimeout(siren, 4000); setTimeout(bang, 2500);
+}
+
 export const audio = {
-  init,
+  init, startAmbience,
   shot(kind) {
     if (kind === 'shotgun') { noise({ dur: 0.35, freq: 1800, gain: 0.9 }); tone({ freq: 120, end: 40, dur: 0.25, gain: 0.6 }); }
     else { noise({ dur: 0.12, freq: 2600, gain: 0.6 }); tone({ freq: 160, end: 60, dur: 0.08, gain: 0.35 }); }

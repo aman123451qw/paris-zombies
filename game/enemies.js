@@ -141,6 +141,7 @@ export async function createEnemies(ctx) {
       } else if (dist > def.range || e.entry) move = 1;
       else if (e.cd <= 0 && e.windup <= 0) { e.windup = 0.35; play(e, 'swing', 0.1); }
       if (e.windup > 0 && (e.windup -= dt) <= 0) { e.cd = def.cd; if (dist < def.range + 0.5) ctx.player.damage(def.dmg, now); }
+      if (dist < 0.9 && dist > 1e-3) { pos.x += (pos.x - pp.x) / dist * (0.9 - dist); pos.z += (pos.z - pp.z) / dist * (0.9 - dist); }
       if (move) { pos.addScaledVector(tmp, def.speed * speedMult * move * dt); if (!e.windup) play(e, move > 0 ? def.move : 'walk'); }
       else if (e.windup <= 0 && e.cd > 0.3 && e.type !== 'thrower') play(e, 'idle');
       else if (e.type === 'thrower' && e.cd < def.cd - 0.8) play(e, 'idle');

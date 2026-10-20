@@ -19,6 +19,10 @@
   #hitmarker::before, #hitmarker::after { content: ''; position: absolute; left: 14px; top: 0; width: 2px; height: 30px; background: #fff; clip-path: polygon(0 0,100% 0,100% 35%,0 35%,0 65%,100% 65%,100% 100%,0 100%); }
   #hitmarker::before { transform: rotate(45deg); } #hitmarker::after { transform: rotate(-45deg); }
   #hitmarker.head::before, #hitmarker.head::after { background: var(--chalk); }
+  #hpbar { left: 30px; bottom: 140px; width: 240px; height: 12px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); }
+  #hpfill { height: 100%; width: 100%; background: #e9e6dc; transition: width .12s, background .2s; }
+  #hpnum { left: 280px; bottom: 136px; font-size: 18px; }
+  #left { left: 112px; bottom: 30px; font-size: 22px; letter-spacing: 1px; opacity: .9; }
   #wave { left: 28px; bottom: 18px; font-family: 'Permanent Marker', cursive; font-size: 72px; color: var(--chalk); line-height: 1; }
   #points { left: 30px; bottom: 100px; font-size: 26px; }
   #ammo { right: 30px; bottom: 22px; font-size: 40px; text-align: right; }
@@ -50,6 +54,9 @@
 <div id="hitmarker" class="hud"></div>
 <div id="wave" class="hud">1</div>
 <div id="points" class="hud">0</div>
+<div id="hpbar" class="hud"><div id="hpfill"></div></div>
+<div id="hpnum" class="hud">100</div>
+<div id="left" class="hud"></div>
 <div id="weaponName" class="hud">RIFLE</div>
 <div id="ammo" class="hud">30 <small>/ 180</small></div>
 <div id="prompt" class="hud"></div>

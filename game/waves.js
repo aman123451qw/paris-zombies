@@ -47,13 +47,17 @@ export function createWaves(ctx) {
 
       // Wave flow.
       if (w.toSpawn <= 0 && ctx.enemies.alive() === 0) {
-        if (w.breakT <= 0) { w.breakT = BREAK; if (w.wave > 0) hud.banner('WAVE CLEARED', 2); }
+        if (w.breakT <= 0) {
+          w.breakT = BREAK; hud.setLeft(0);
+          if (w.wave > 0) { ctx.weapons.refill('rifle', 90); ctx.weapons.refill('shotgun', 12); hud.banner('WAVE CLEARED · AMMO', 2.5); }
+        }
         if ((w.breakT -= dt) <= 0) {
           w.wave++; w.toSpawn = enemiesPerWave(w.wave); w.spawnT = 0.5;
           hud.setWave(w.wave); hud.banner(`WAVE ${w.wave}`); audio.waveStart();
         }
         return;
       }
+      hud.setLeft(w.toSpawn + ctx.enemies.alive());
       w.spawnT -= dt;
       if (w.toSpawn > 0 && w.spawnT <= 0 && ctx.enemies.alive() < MAX_ALIVE) {
         ctx.enemies.spawn(w.pickType(), w.gateOpen); w.toSpawn--; w.spawnT = Math.max(0.35, 1.1 - w.wave * 0.06);

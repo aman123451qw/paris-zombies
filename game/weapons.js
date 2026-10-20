@@ -78,6 +78,7 @@ export async function createWeapons(ctx) {
       const hit = ray.intersectObjects(ctx.hitTargets, false)[0]; ray.far = RANGE;
       if (hit) hit.object.userData.onHit(50, false, hit.point, now);
     },
+    refill(id, n) { const s = state[id]; if (!s) return; s.reserve = Math.min(DEFS[id].reserve * 1.5, s.reserve + n); if (id === cur) hud.setAmmo(s.ammo, s.reserve); },
     reset() { state.rifle = { ammo: 30, reserve: 180 }; state.shotgun = null; w.switchTo('rifle'); recoilP = recoilY = heat = 0; },
 
     update(dt, now) {

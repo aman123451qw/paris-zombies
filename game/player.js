@@ -67,7 +67,7 @@ export function createPlayer(ctx) {
       p.moving = onFloor && Math.hypot(vel.x, vel.z) > 1;
 
       if (collider.end.y < -20) p.spawn({ x: 0, z: 20 });
-      if (p.alive && now - p.lastHit > 4) p.hp = Math.min(p.maxHp, p.hp + 25 * dt);
+      if (p.alive && now - p.lastHit > 5) p.hp = Math.min(p.maxHp, p.hp + 20 * dt);
     },
 
     speed() { return Math.hypot(vel.x, vel.z); },

@@ -8,6 +8,7 @@ import { buildWorld } from './world.js';
 import { createEnemies } from './enemies.js';
 import { createWaves } from './waves.js';
 import { softDotTex } from './textures.js';
+import { buildRiot } from './riot.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -47,6 +48,7 @@ async function boot() {
   const world = await buildWorld(ctx);
   ctx.world = world;
   ctx.worldMeshes = world.worldMeshes;
+  ctx.riot = buildRiot(ctx);
   ctx.weapons = await createWeapons(ctx);
   ctx.enemies = await createEnemies(ctx);
   ctx.waves = createWaves(ctx);
@@ -56,7 +58,7 @@ async function boot() {
 }
 
 function start() {
-  audio.init();
+  audio.init(); audio.startAmbience();
   if (ctx.state === 'dead' || ctx.state === 'menu') {
     ctx.enemies.reset(); ctx.weapons.reset(); ctx.waves.reset(); ctx.player.spawn({ x: 0, z: 22, yaw: 0 });
   }
@@ -112,7 +114,7 @@ renderer.setAnimationLoop(() => {
     ctx.waves.update(dt, ctx.now);
     if (ctx.player.moving && (stepT -= dt * (ctx.player.sprinting ? 1.5 : 1)) <= 0) { stepT = 0.42; audio.step(ctx.player.sprinting); }
   }
-  ctx.world?.updateParticles(dt);
+  ctx.world?.updateParticles(dt); ctx.riot?.update(dt);
   for (let i = puffs.length - 1; i >= 0; i--) {
     const s = puffs[i]; s.userData.t += dt * 2.5; s.scale.setScalar(0.25 + s.userData.t * 0.6); s.material.opacity = 1 - s.userData.t;
     if (s.userData.t >= 1) { scene.remove(s); s.material.dispose(); puffs.splice(i, 1); }
