@@ -21,8 +21,8 @@ export function buildRiot(ctx) {
   const sprites = [], lights = [];
   fires.forEach(([x, z], fi) => {
     for (let k = 0; k < 3; k++) tyres.setMatrixAt(fi * 3 + k, new THREE.Matrix4().makeTranslation(x + rnd(-0.3, 0.3), 0.14 + k * 0.27, z + rnd(-0.3, 0.3)));
-    for (let i = 0; i < 18; i++) {
-      const flame = i < 7;
+    for (let i = 0; i < 9; i++) {
+      const flame = i < 4;
       const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: flame ? fireTex : smokeTex, transparent: true, depthWrite: false, blending: flame ? THREE.AdditiveBlending : THREE.NormalBlending }));
       s.userData = { x, z, t: Math.random(), flame, rise: flame ? 2.2 : 11, size: flame ? 1.3 : 2.6, speed: flame ? 1.6 : 0.22 };
       root.add(s); sprites.push(s);
@@ -36,12 +36,12 @@ export function buildRiot(ctx) {
   for (const [x, z] of [[-8, -24], [15, 23], [-33, -12], [37, 4], [0, -45], [-52, -2]]) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: flareTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     s.position.set(x, 0.25, z); s.scale.setScalar(1.6); s.userData = { flare: true, base: 1.6 }; root.add(s); sprites.push(s);
-    for (let i = 0; i < 6; i++) { const p = new THREE.Sprite(new THREE.SpriteMaterial({ map: greyTex, transparent: true, depthWrite: false, color: 0xff9a90 })); p.userData = { x, z, t: Math.random(), flame: false, rise: 6, size: 2, speed: 0.3 }; root.add(p); sprites.push(p); }
+    for (let i = 0; i < 3; i++) { const p = new THREE.Sprite(new THREE.SpriteMaterial({ map: greyTex, transparent: true, depthWrite: false, color: 0xff9a90 })); p.userData = { x, z, t: Math.random(), flame: false, rise: 6, size: 2, speed: 0.3 }; root.add(p); sprites.push(p); }
   }
 
   // --- Low smoke / tear-gas haze drifting across the square.
   const haze = [];
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 14; i++) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: greyTex, transparent: true, depthWrite: false, opacity: 0.35 }));
     s.position.set(rnd(-HALF_X, HALF_X), rnd(1, 3.5), rnd(-HALF_Z, HALF_Z)); s.scale.setScalar(rnd(9, 16));
     s.userData = { vx: rnd(0.3, 0.9), ph: Math.random() * 6 }; root.add(s); haze.push(s);
@@ -85,6 +85,7 @@ export function buildRiot(ctx) {
 
   let t = 0;
   return {
+    crowd,
     update(dt) {
       t += dt;
       for (const s of sprites) {

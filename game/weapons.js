@@ -43,7 +43,7 @@ export async function createWeapons(ctx) {
   const rifleScene = (await new GLTFLoader().loadAsync('assets/rifle.gltf.json')).scene;
   const models = { rifle: rifleScene, shotgun: shotgunMesh() };
   rifleScene.userData.muzzleZ = -0.515;
-  const holder = new THREE.Group(); camera.add(holder);
+  const holder = new THREE.Group(); holder.position.set(0.2, -0.21, -0.5); camera.add(holder);
   const flashMat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false });
   const flash = new THREE.Mesh(muzzleFlashGeometry(), flashMat); flash.visible = false;
   // Layer 1 = view-model pass (rendered after a depth clear, so the gun never clips into walls).

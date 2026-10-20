@@ -203,9 +203,9 @@ export async function buildWorld(ctx) {
   const smokeTex = softDotTex('rgba(40,40,44,.9)', 'rgba(40,40,44,0)'), fireTex = softDotTex('rgba(255,180,60,1)', 'rgba(255,60,0,0)');
   const emitters = [...props.map(p => ({ p, fire: true })), { p: new THREE.Vector3(-70, 15, -55) }, { p: new THREE.Vector3(35, 15, -75) }, { p: new THREE.Vector3(80, 15, 40) }];
   const parts = [];
-  for (const e of emitters) for (let i = 0; i < (e.fire ? 26 : 30); i++) {
-    const sm = new THREE.Sprite(new THREE.SpriteMaterial({ map: e.fire && i < 10 ? fireTex : smokeTex, transparent: true, depthWrite: false, blending: e.fire && i < 10 ? THREE.AdditiveBlending : THREE.NormalBlending, fog: true }));
-    sm.userData = { e, fire: e.fire && i < 10, t: Math.random() }; root.add(sm); parts.push(sm);
+  for (const e of emitters) for (let i = 0; i < (e.fire ? 12 : 16); i++) {
+    const sm = new THREE.Sprite(new THREE.SpriteMaterial({ map: e.fire && i < 5 ? fireTex : smokeTex, transparent: true, depthWrite: false, blending: e.fire && i < 5 ? THREE.AdditiveBlending : THREE.NormalBlending, fog: true }));
+    sm.userData = { e, fire: e.fire && i < 5, t: Math.random() }; root.add(sm); parts.push(sm);
   }
   function updateParticles(dt) {
     for (const s of parts) {
