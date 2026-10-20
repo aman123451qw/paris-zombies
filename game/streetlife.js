@@ -71,8 +71,10 @@ export async function buildStreetLife(ctx) {
   // Animated protesters milling behind each barricade (the crew models, slowed to a jog/sway).
   const crews = [];
   for (const t of ['runner', 'heavy', 'thrower']) try { crews.push(await loader.loadAsync(`assets/crew_${t}.gltf.json`)); } catch { /* optional */ }
-  const zones = [{ x: 0, z: -HALF_Z - 22, w: 14, d: 10, along: 'x' }, { x: 0, z: HALF_Z + 22, w: 14, d: 10, along: 'x' }, { x: -HALF_X - 22, z: 1, w: 10, d: 14, along: 'z' }];
-  if (crews.length) for (const zn of zones) for (let i = 0; i < 6; i++) {
+  const zones = [{ x: 0, z: -HALF_Z - 22, w: 14, d: 10, along: 'x' }, { x: 0, z: HALF_Z + 22, w: 14, d: 10, along: 'x' }, { x: -HALF_X - 22, z: 1, w: 10, d: 14, along: 'z' },
+    { x: -26, z: -HALF_Z + 2.6, w: 22, d: 2, along: 'x' }, { x: 26, z: HALF_Z - 2.6, w: 22, d: 2, along: 'x' },
+    { x: -HALF_X + 2.6, z: 18, w: 2, d: 18, along: 'z' }, { x: HALF_X - 2.6, z: -18, w: 2, d: 18, along: 'z' }];
+  if (crews.length) for (const zn of zones) for (let i = 0; i < (zn.w > 15 || zn.d > 15 ? 4 : 6); i++) {
     const src = crews[i % crews.length], m = SkeletonUtils.clone(src.scene);
     const h = new THREE.Box3().setFromObject(src.scene).getSize(new THREE.Vector3()).y || 1.8;
     m.scale.setScalar(rnd(1.65, 1.85) / h); m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
@@ -93,6 +95,9 @@ export async function buildStreetLife(ctx) {
       b.position.set(x, 0, z); b.rotation.y = rotY; b.userData.ph = Math.random() * 6; root.add(b); boards.push(b);
     };
     let k = 0;
+    const sideBoards = [[-30, -HALF_Z + 2.4], [-12, -HALF_Z + 2.4], [14, -HALF_Z + 2.4], [32, -HALF_Z + 2.4], [-32, HALF_Z - 2.4], [-10, HALF_Z - 2.4], [12, HALF_Z - 2.4], [30, HALF_Z - 2.4],
+      [-HALF_X + 2.4, -22], [-HALF_X + 2.4, 24], [HALF_X - 2.4, -24], [HALF_X - 2.4, 22]];
+    for (const [x, z] of sideBoards) { layer(x, z, 0, 9, k++); boards[boards.length - 1].userData.face = true; }
     for (const d of [21, 26, 31]) { layer(rnd(-2, 2), -HALF_Z - d, 0, 16, k++); layer(rnd(-2, 2), HALF_Z + d, Math.PI, 16, k++); layer(-HALF_X - d, rnd(-1, 3), Math.PI / 2, 16, k++); }
     for (const d of [38, 43]) layer(HALF_X + d, 1, -Math.PI / 2, 16, k++);
   }
@@ -118,7 +123,8 @@ export async function buildStreetLife(ctx) {
         if (along) { p.x += w.dir * w.speed * dt; if (Math.abs(p.x - w.zn.x) > w.zn.w / 2) w.dir *= -1; w.m.rotation.y = w.dir > 0 ? Math.PI / 2 : -Math.PI / 2; }
         else { p.z += w.dir * w.speed * dt; if (Math.abs(p.z - w.zn.z) > w.zn.d / 2) w.dir *= -1; w.m.rotation.y = w.dir > 0 ? 0 : Math.PI; }
       }
-      for (const b of boards) b.position.y = Math.abs(Math.sin(t * 1.6 + b.userData.ph)) * 0.08;
+      const cp = ctx.camera.position;
+      for (const b of boards) { b.position.y = Math.abs(Math.sin(t * 1.6 + b.userData.ph)) * 0.08; if (b.userData.face) b.rotation.y = Math.atan2(cp.x - b.position.x, cp.z - b.position.z); }
     },
   };
 }
