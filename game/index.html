@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>République</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --chalk: #d8262b; --ink: #f4efe6; --shade: rgba(10, 10, 12, .72); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--ink); font-family: 'Oswald', system-ui, sans-serif; }
+  canvas { display: block; }
+  .hud { position: fixed; pointer-events: none; text-shadow: 0 2px 4px #000; }
+  #crosshair { left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+  #crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(255,255,255,.85); }
+  #crosshair::before { left: 10px; top: 0; width: 2px; height: 22px; clip-path: polygon(0 0,100% 0,100% 35%,0 35%,0 65%,100% 65%,100% 100%,0 100%); }
+  #crosshair::after { top: 10px; left: 0; height: 2px; width: 22px; clip-path: polygon(0 0,35% 0,35% 100%,0 100%,0 0,65% 0,100% 0,100% 100%,65% 100%); }
+  #hitmarker { left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; opacity: 0; transition: opacity .12s; }
+  #hitmarker::before, #hitmarker::after { content: ''; position: absolute; left: 14px; top: 0; width: 2px; height: 30px; background: #fff; clip-path: polygon(0 0,100% 0,100% 35%,0 35%,0 65%,100% 65%,100% 100%,0 100%); }
+  #hitmarker::before { transform: rotate(45deg); } #hitmarker::after { transform: rotate(-45deg); }
+  #hitmarker.head::before, #hitmarker.head::after { background: var(--chalk); }
+  #wave { left: 28px; bottom: 18px; font-family: 'Permanent Marker', cursive; font-size: 72px; color: var(--chalk); line-height: 1; }
+  #points { left: 30px; bottom: 100px; font-size: 26px; }
+  #ammo { right: 30px; bottom: 22px; font-size: 40px; text-align: right; }
+  #ammo small { font-size: 22px; opacity: .7; }
+  #weaponName { right: 30px; bottom: 74px; font-size: 16px; letter-spacing: 2px; opacity: .8; }
+  #prompt { left: 50%; top: 62%; transform: translateX(-50%); font-size: 20px; background: var(--shade); padding: 6px 14px; border-radius: 4px; display: none; }
+  #banner { left: 50%; top: 22%; transform: translateX(-50%); font-family: 'Permanent Marker', cursive; font-size: 64px; color: var(--chalk); opacity: 0; transition: opacity .4s; }
+  #vignette { inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(170, 0, 0, .75) 100%); opacity: 0; }
+  #popups { inset: 0; }
+  .pop { position: absolute; left: 52%; top: 46%; font-size: 20px; color: #ffe08a; animation: rise .8s ease-out forwards; }
+  @keyframes rise { to { transform: translateY(-50px); opacity: 0; } }
+  .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(8, 8, 10, .78); text-align: center; z-index: 10; }
+  .overlay h1 { font-family: 'Permanent Marker', cursive; font-size: clamp(48px, 9vw, 120px); margin: 0; color: var(--ink); letter-spacing: 2px; }
+  .overlay h1 span { color: var(--chalk); }
+  .overlay p { max-width: 560px; font-size: 18px; opacity: .85; margin: 10px 16px; }
+  .overlay button { margin-top: 22px; font: 700 24px 'Oswald', sans-serif; padding: 12px 40px; background: var(--chalk); color: #fff; border: 0; border-radius: 4px; cursor: pointer; letter-spacing: 2px; }
+  .keys { font-size: 15px; opacity: .7; margin-top: 18px; line-height: 1.7; }
+  .hidden { display: none !important; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="crosshair" class="hud"></div>
+<div id="hitmarker" class="hud"></div>
+<div id="wave" class="hud">1</div>
+<div id="points" class="hud">0</div>
+<div id="weaponName" class="hud">RIFLE</div>
+<div id="ammo" class="hud">30 <small>/ 180</small></div>
+<div id="prompt" class="hud"></div>
+<div id="banner" class="hud"></div>
+<div id="vignette" class="hud"></div>
+<div id="popups" class="hud"></div>
+
+<div id="start" class="overlay">
+  <h1>RÉPUBLIQUE</h1>
+  <p>Hold the square. Survive the waves.</p>
+  <button id="playBtn">PLAY</button>
+  <div class="keys">WASD move · Shift sprint · C crouch · Space jump<br />Mouse fire · Right mouse aim · R reload · V melee · F buy · 1/2 switch</div>
+</div>
+<div id="dead" class="overlay hidden">
+  <h1>YOU <span>FELL</span></h1>
+  <p id="deadStats"></p>
+  <button id="againBtn">AGAIN</button>
+</div>
+<div id="paused" class="overlay hidden">
+  <h1>PAUSED</h1>
+  <button id="resumeBtn">RESUME</button>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

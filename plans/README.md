@@ -15,7 +15,7 @@ This file is the source of truth. After every phase, tick the boxes, add a line 
    - Run Blender headless from Python scripts (`blender -b --python`), not through the GUI or an MCP. Scripts are cheaper and repeatable.
    - Take one `/browse` screenshot per phase.
    - Use one subagent only, for the Blender kit (B1), so it runs alongside P1.
-4. **Content:** enemies are ordinary people in black hoodies, balaclavas and ski masks. They carry no signs, flags, slogans, symbols, visible faces or blood.
+4. **Content:** enemies are human protester-style characters, an imitation of the masked black-clad protesters in the footage, not zombies. Their look comes from the Higgsfield character sheets in `reference/characters/` (runner, heavy, thrower). There's no blood.
 5. **Git:** commit after each phase. Do **not** add Claude or Anthropic attribution lines to commits.
 6. **Publishing** anywhere (Artifact link, GitHub Pages or Emergent) needs Aman's OK at gate G2.
 
@@ -84,7 +84,8 @@ paris-zombies/
 
 | Asset | Source | License | Size | Use in game |
 |---|---|---|---|---|
-| `Soldier.glb`: rigged, 49 joints, Idle, Walk, Run and T-pose clips | three.js `examples/models/gltf/` | Ships with three.js (a royalty-free Mixamo character) | 2.2 MB | All 3 enemy variants: black material, hood added on the head bone, prop in the hand per variant |
+| `Soldier.glb`: rigged, 49 joints, Idle, Walk, Run and T-pose clips | three.js `examples/models/gltf/` | Ships with three.js (a royalty-free Mixamo character) | 2.2 MB | **Placeholder only.** It reads as an armoured soldier, so it won't be the final enemy |
+| Mixamo hoodie character plus 7 clips (idle, run, walk, swing, throw, hit, death) | [mixamo.com](https://www.mixamo.com); Aman downloads the FBX files into `game/assets/mixamo/` | Mixamo: free to use in games | ~3–5 MB raw, merged to `crew.glb` in Blender | **The enemy model** for all 3 variants: black material, balaclava on the head bone, prop and scale per variant |
 | `rifle.glb` | agentofduty `public/models/` | MIT | 0.8 MB | The player's starting gun in first person |
 | `car.glb` | agentofduty | MIT | 1.1 MB | Burnt car: darkened material plus ember particles |
 | `dumpster.glb` | agentofduty | MIT | 0.7 MB | Cover and bins around the square |
@@ -117,7 +118,7 @@ None of these is needed for the first build. Propose one only after P6 if the ga
 |---|---|---|---|
 | H1 | Facade texture atlas (stone, windows, shopfronts) | Yes, if the Blender facades look flat | ~0.25 credits |
 | H2 | Title card and key art for the start screen | Small improvement; nice to have | ~0.25 credits |
-| H3 | 3 rigged enemy models from the character sheets | Only if the tinted Soldier.glb reads badly | Unknown; needs approval just to check the cost |
+| H3 | The 3 enemy models from our character sheets via Higgsfield 3D (38 credits each textured + rigged + run; 28 untextured) | Fallback if Mixamo looks wrong. **Current route: Mixamo (free), Aman 2026-10-20** | 38 credits each (checked 2026-10-20) |
 
 ## 5. Gameplay numbers (starting values; tune in P6)
 
@@ -153,11 +154,11 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 
 ### P0: Setup (10 min, ~10k tokens)
 - [x] Repo, `.gitignore` (excludes `reference/footage/`)
-- [ ] Blender installed (winget, running in the background)
-- [ ] Copy `Soldier.glb`, `rifle.glb`, `car.glb` and `dumpster.glb` into `game/assets/` (already downloaded to scratch)
-- [ ] Download the Poly Haven paving and plaster textures and the HDRI at 1K
-- [ ] `index.html` with the importmap; blank scene; start overlay; served locally with `npx serve game`
-- [ ] Commit "P0 scaffold"
+- [x] Blender 5.2.2 installed
+- [x] Copy `Soldier.glb`, `rifle.glb`, `car.glb` and `dumpster.glb` into `game/assets/` (already downloaded to scratch)
+- [x] Download the Poly Haven paving and plaster textures and the HDRI at 1K
+- [x] `index.html` with the importmap; blank scene; start overlay; served locally with `npx serve game`
+- [x] Commit "P0 scaffold"
 
 ### B1: Blender Paris kit (45 min, subagent, runs alongside P1, ~40k tokens)
 - [ ] `blender/build_paris_kit.py` builds every piece in §4.2 with named nodes plus `col_*` colliders
@@ -165,10 +166,10 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - [ ] Commit "B1 Paris kit"
 
 ### P1: Player and gun (30 min, ~35k tokens)
-- [ ] `player.js` from games_fps (§2 rows 1–2) on a test floor
-- [ ] `weapons.js` with `rifle.glb` attached to the camera; hitscan; recoil, spread, aiming and bob from agentofduty (§2 rows 3–7)
-- [ ] `hud.js`: crosshair, ammo, hitmarker. `audio.js`: shot, hit and reload synths
-- [ ] Commit "P1 player + rifle"
+- [x] `player.js` from games_fps (§2 rows 1–2) on a test floor
+- [x] `weapons.js` with `rifle.glb` attached to the camera; hitscan; recoil, spread, aiming and bob from agentofduty (§2 rows 3–7)
+- [x] `hud.js`: crosshair, ammo, hitmarker. `audio.js`: shot, hit and reload synths
+- [x] Commit "P1 player + rifle"
 
 ### P2: République map (30 min, ~35k tokens)
 - [ ] `world.js` places kit pieces: a ring of buildings with 4 street gaps, the monument in the centre, 2 tree rows, 2 metro arches, barricades, cars, dumpsters, café tables, and the side-street block behind pallets
@@ -222,3 +223,4 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 ## 9. Progress log
 
 - 2026-10-20: Plan v2. Each mechanic is mapped to a repo, file and line range, and reused assets are identified (Soldier, rifle, car, dumpster, Poly Haven). The Blender kit is added and the Blender install has started.
+- 2026-10-20: P0 and P1 are done. The P2–P4 code is written as well: `world.js` (falls back to boxes until `paris_kit.glb` exists), `enemies.js` (loads `crew.glb`, falling back to Soldier), `waves.js` and the HUD screens. Headless test: boots with no errors, wave 1 spawns, the rifle fires and hits register. Headless runs at about 6 fps (no GPU), so it needs a real-browser test. Waiting on the B1 kit (subagent) and Aman's Mixamo files.
