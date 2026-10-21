@@ -58,25 +58,33 @@ Line numbers were checked on 2026-10-20 against the versions noted.
 
 Never read `warzone/src/main.js` (178 KB) or whole AI and world files. The table above is all we need.
 
-## 3. File layout (each file under about 250 lines)
+## 3. File layout (as built)
 
 ```
 paris-zombies/
   game/
-    index.html     importmap (three 0.180.0 via cdn.jsdelivr.net), HUD markup and CSS, start screen
-    main.js        boot, render loop, game state (menu / playing / dead)
-    player.js      capsule movement and collisions (from games_fps), pointer lock, health
-    weapons.js     rifle and shotgun hitscan, recoil, spread, aiming, bob, muzzle flash (from agentofduty)
-    world.js       loads paris_kit.glb, places the map, builds the Octree from colliders
-    enemies.js     Soldier.glb clones, 3 variants, AI, hit and death
-    waves.js       spawner, scaling and payouts (from warzone), wall-buy and door purchases
-    hud.js         HUD, hitmarker, damage vignette, start and game-over screens
-    audio.js       Web Audio synth sound effects
-    assets/        all .glb models and texture .jpg files (budget: under 12 MB in total)
+    index.html      local page: importmap (three 0.180.0 from cdn.jsdelivr.net), HUD markup and CSS, start, pause and death screens
+    page.html       publish copy of index.html with no <html>, <head> or <body> wrapper (the Artifact adds its own). Keep in sync with index.html
+    main.js         boot, render loop (world pass + view-model pass on layer 1), game state, input, F3 frame counter, window.__ctx for QA
+    player.js       capsule movement and collisions (from games_fps), crouch, sprint, health and regeneration
+    weapons.js      rifle (rifle.gltf.json) and shotgun hitscan, recoil, spread, aiming, bob, muzzle flash (from agentofduty), refill()
+    world.js        square, ring road, sidewalks, kerbs, zebra crossings, textured facades and roofs, side streets, skyline ring, kit props, cars, static mesh merging, Octree
+    riot.js         tyre and barricade fires, flares, haze, instanced debris, bins, cones, crowd and siren ambience
+    streetlife.js   police roadblocks, burning, flipped and abandoned cars, animated protesters, crowd cut-outs (background only, never hit targets)
+    enemies.js      crew_<type>.gltf.json models (Soldier fallback), 3 variants, AI, hitboxes, hit and death
+    waves.js        spawner, scaling and payouts (from warzone), wall-buy, gate, enemies-left counter, ammo refill on wave clear
+    hud.js          health bar, ammo, points, wave, enemies left, hitmarker, damage vignette, banners, pop-ups
+    audio.js        Web Audio synth effects plus ambience
+    textures.js     canvas textures (plaques, chalk wall-buy, Morris column posters, soft dots)
+    qa_combat.js    headless combat test: time-to-kill per type, headshot, melee damage, regen
+    viewer.html, crew_viewer.html   model viewers for checking assets
+    assets/         *.gltf.json models (glb converted to embedded JSON) and tex/*.jpg|webp
   blender/
-    build_paris_kit.py   headless Blender script; writes game/assets/paris_kit.glb
-  plans/README.md  this file
-  reference/       footage, styleboard, concepts, character sheets (not shipped)
+    build_paris_kit.py      headless Blender script that writes the Paris street kit
+    build_crew.py           Mixamo FBX merge script (unused; Mixamo was dropped)
+    mcp/                    Blender MCP add-on and its installer (telemetry off)
+  plans/README.md   this file
+  reference/        styleboard, concepts, character sheets and view crops (footage is git-ignored)
 ```
 
 ## 4. Artwork plan
@@ -220,7 +228,35 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 | 2026-10-19 | Apify: 16 footage clips | ~$0.17 |
 | 2026-10-19/20 | Higgsfield: 6 concept frames + 3 character sheets | ~2.25 credits |
 | 2026-10-20 | Higgsfield: 3 enemy 3D models (H3, approved) | 114 credits |
-| | **Total so far** | **~116.25 credits + $0.17** |
+| 2026-10-20 | Higgsfield: texture pack (4 facades, roof, skyline), approved | 1.5 credits |
+| 2026-10-20 | Higgsfield: 3 crowd cut-outs, approved | 0.75 credits |
+| | **Total so far** | **~118.5 credits + $0.17** |
+
+## 10. Do's and don'ts (lessons from this build)
+
+**Do**
+- Read this file first in a new session, and resume from the first unticked box or the latest progress-log entry.
+- Ask Aman before **any** Higgsfield call, cost checks included. Batch the asks and give a credit estimate (gpt_image_2_5 low 1K is 0.25 credits; low 2K is 0.5; medium 2K is 1; 3D with rig and animation is 38).
+- Prefer free sources: Poly Haven CC0 textures, three.js examples, MIT repo assets, headless Blender scripts and canvas textures.
+- Commit after every meaningful change, with no Claude or Anthropic attribution lines.
+- Convert every `.glb` to an embedded `.gltf.json` before publishing (artifacts won't serve `.glb`). Use `.jpg`, `.webp` or `.png` for images, and **not** `.hdr`.
+- After editing `index.html`, regenerate `page.html` with the same edits. It's the publish copy without the html, head and body tags.
+- Merge static scenery by material (`mergeStatic` in world.js) and use InstancedMesh for repeats. Keep draw calls under about 450 and check with F3.
+- Put enemy hitboxes on the root at fixed heights (body cylinder 0–1.45 m, head sphere at 1.62 m × scale). **Never** use the generated rig's bones for hitboxes.
+- Run `qa_combat.js` headless after any combat change (see the commands in the progress log). It measures time-to-kill, headshots, melee damage and regen.
+- Check free RAM in long sessions. Under about 3 GB, run `browse stop`, kill `chrome-headless-shell` and stop stray tasks. Stop the browse server after each QA pass.
+- For multi-line patches, write a small `.mjs` patch script to the scratchpad. That avoids shell quoting breakage.
+- Keep background scenery (crowds, police, cars) out of `ctx.hitTargets` and `ctx.worldMeshes`.
+
+**Don't**
+- Don't read big upstream files whole (warzone `main.js` is 178 KB, and the AI and world systems are big too). Use `grep -n` or `sed -n` with the line ranges in §2.
+- Don't copy code from `doom-town-zombies`: it has no license. Use it for ideas only.
+- Don't use `node -e '…'` with quotes inside JS strings. The shell strips them (it broke `'bandpass'` once).
+- Don't restart a background server that Claude Code reaped for low memory unless Aman asks.
+- Don't trust headless fps or feel: the test browser has no GPU and runs at about 6 fps. Use game-time waits (`c.now`) in QA, and ask Aman for real playtests.
+- Don't leave presigned upload URLs or tokens in the repo (`upl.tsv` was deleted).
+- Don't show real people, slogans, symbols or brand logos. Enemies and crowds are generic masked protesters.
+- Don't put the protest only at the street ends. The player needs to see it from inside the square.
 
 ## 9. Progress log
 
@@ -233,3 +269,7 @@ Times are wall-clock targets. Token figures are rough ceilings for that phase.
 - 2026-10-20: Street-life pass in `streetlife.js`. Police car roadblocks at the end of each street with flashing blue lights; 10 burning or flipped cars plus 5 abandoned ones; 18 animated protesters (the crew models) milling behind the barricades; Higgsfield crowd cut-outs (3 images, 0.75 credits) layered in every street. Particle sprites halved; about 436 draw calls. Published v4.
 - 2026-10-20: Aman could not see protesters (they were only at the far ends of the streets). Added 12 camera-facing crowd groups on the square sidewalks and 16 more animated protesters. Published v5.
 - 2026-10-20: Combat QA (`game/qa_combat.js`, run headless). Found headshots broken: the head hitbox was attached to the generated rig's Head bone, which sits about 0.08 m above the ground, so aiming at a head hit nothing. Also found the heavy took 11 s to kill (the shield blocked 90%). Fixed: head hitbox pinned at 1.62 m × scale on the root; heavy is 180 HP and its shield blocks 60%; hit points awarded once per shot. Re-test: heavy dies in 2 s, 2 headshots kill a runner, melee and regen unchanged and correct. Published v6.
+- 2026-10-21: Added §10 Do's and don'ts and updated §3 to the as-built layout and §8 to about 118.5 credits. Deleted `reference/characters/upl.tsv` (it held presigned upload tokens).
+  - **Run locally:** `cd game && npx http-server -p 8765 -c-1`, then open http://localhost:8765/.
+  - **Combat QA (headless):** open the page with gstack browse and wait until `window.__ctx.state == 'menu'`. Then run `import('/qa_combat.js').then(() => window.__qaCombat().then(r => window.__qaRes = r))` and poll `window.__qaRes`. It takes about 10 minutes at headless speed.
+  - **Publish:** republish `game/page.html` to https://claude.ai/artifact/XJok4tXdxyMUxTD4uM6Rmn with the changed JS and asset files.
